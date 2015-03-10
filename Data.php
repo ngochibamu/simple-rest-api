@@ -3,14 +3,16 @@ require_once 'Configuration.php';
 
 class Data {
 	private $uploadDir =null;
+	private static $settings = array();
 	private $filePath;
 	
 	public function __construct($fileName = "data.txt"){
-		$this->uploadDir = Configuration::getInstance()->get()['InputData']['upload_dir'];
-		if(file_exists($this->uploadDir.$filePath))	{
-			$this->$filePath = $fileName;
+		$this->settings = Configuration::getInstance()->get();
+		$this->uploadDir = $this->settings['upload_dir'];
+		if(file_exists($this->uploadDir.$fileName))	{
+			$this->filePath = $this->uploadDir.$fileName;
 		}else{
-			throw new Exception('Error :'+ $this->fileName + ' not found!');
+			throw new Exception('Error :'+ $this->filePath + ' not found!');
 		}
 	}
 	

@@ -1,6 +1,7 @@
 <?php
 
 require_once 'Rest.inc.php';
+require_once 'Data.php';
 
 class Api extends REST {
 	const DB_HOST = "localhost";
@@ -37,28 +38,47 @@ class Api extends REST {
 		$action = strtolower ( trim ( str_replace ( "/", "", $_REQUEST ["request"] ) ) );
 		var_dump($action);
 		if (method_exists ( $this, $action )) {
-			$this->action;
+			$this->$action();
 		} else {
 			$this->response ('', 404 );
 		}
-		var_dump ( $action );
+		
 	}
 	private function save() {
-		if (strtolower($this->get_request_method) != "POST") {
-			$this->response ( '', 406 );
-		}
+				
 		$data = new Data();
-		try{			
-			$sql = "INSERT INTO departments (department_name,contact_name,contact_emailaddress) VALUES (:department_name, :contact_name, :contact_emailaddress)";		
-			$stmt = self::$db->prepare($sql);
-			$resultDepart = $stmt->exec(array(':department_name'=>$departmentName, ':contact_name'=>$contactName, ':contact_emailaddress'=>$contactEmailaddress));
+		$dataInput = $data->getStaffRecords();
+		
+		$sqlDep = "INSERT INTO departments (department_name,contact_name,contact_emailaddress) VALUES (:department_name, :contact_name, :contact_emailaddress)";
+		$sqlCon = "INSERT INTO contacts (first_name,last_name,email_address,gender,department_id) VALUES (:first_name, :last_name, :email_address, :gender, :department_id)";
+		
+		$stmtDep = self::$db->prepare($sqlDep);
+		$stmtCon = self::$db->prepare($sqlCon);
+		foreach($dataInput as $line){
+			list($firstName, $lastName, $emailAddress, $gender, $departmentName, $contactName, $contactEmailaddress) = explode("\t",$line);
+			echo "<pre>";
+				echo $firstName."<br/>";
+				echo $lastName."<br/>";
+				echo $emailAddress."<br/>";
+				echo $gender."<br/>";
+				echo $departmentName."<br/>";
+				echo $contactName."<br/>";
+				echo $contactEmailaddress."<br/>";
 			
-			$sql = "INSERT INTO contacts (first_name,last_name,email_address,gender,department_id) VALUES (:first_name, :last_name, :email_address, :gender, :department_id)";
-			$stmt = self::$db->prepare($sql);
-			$resultContacts = $stmt->exec(array(':first_name' => $firstName, ':last_name'=>$lastName, ':email_address' => $emailAddress, ':gender' => $gender, ':department_id'=>$departmentId));
-			
-		}catch(PDOException $e){
-			error_log($e);
+			echo "</pre>";
+			try{			
+				self::$db->beginTransaction();
+				$stmtDep->execute(array(':department_name'=>$departmentName, ':contact_name'=>$contactName, ':contact_emailaddress'=>$contactEmailaddress));
+				$departmentId = self::$db->lastInsertId();
+				self::$db->commit();
+	
+				self::$db->beginTransaction();
+				$stmtCon->execute(array(':first_name' => $firstName, ':last_name'=>$lastName, ':email_address' => $emailAddress, ':gender' => $gender, ':department_id'=>$departmentId));
+				self::$db->commit();			
+				
+			}catch(PDOException $e){
+				error_log($e);
+			}
 		}
 	}
 	

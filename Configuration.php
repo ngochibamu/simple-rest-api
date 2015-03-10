@@ -25,7 +25,6 @@
 			if(file_exists($settingsFile)){
 				static::$config = parse_ini_file($settingsFile);
 			}
-			var_dump(static::$config);
 			return static::$config;
 		}
 	}
