@@ -17,7 +17,7 @@ CREATE TABLE contacts (
 	gender char(1) NOT NULL,
 	department_id INT NOT NULL,
 	PRIMARY KEY(contact_id),
-	FOREIGN KEY (department_id) REFERENCES departments(department_id)
+	FOREIGN KEY (department_id)
 ) ENGINE=INNODB;
 
 
